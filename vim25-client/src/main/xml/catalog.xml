@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system"> 
+  <system
+    systemId="http://vmware.com/ws/vim25?wsdl"
+    uri="vim25/vimService.wsdl" /> 
+</catalog>

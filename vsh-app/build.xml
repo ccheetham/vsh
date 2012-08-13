@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vsh-app" xmlns:vsh="antlib:com.vmware.vsh">
+
+  <import file="../project.xml"/>
+
+  <target name="-post.init">
+    <property name="javacc.src.dir" location="${src.dir}/main/javacc" />
+  </target>
+
+  <target name="-pre.build">
+    <mkdir dir="${dep.dir}" />
+    <ant dir="${project.basedir}/vsh-api" target="dist" inheritall="false">
+      <property name="dist.dir" location="${dep.dir}" />
+    </ant>
+    <copy todir="${classes.dir}">
+      <fileset dir="${java.src.dir}" includes="**/*.properties" />
+    </copy>
+  </target>
+
+  <target name="-impl.build" depends="-check.src">
+    <!-- TODO: bubble this into ../project.xml -->
+    <mkdir dir="${classes.dir}" />
+    <javac destdir="${classes.dir}"
+           debug="${debug}"
+           includeantruntime="false"
+           extdirs="${dep.dir}/lib">
+      <src path="${java.src.dir}" />
+      <src path="${gen.src.dir}" />
+    </javac>
+  </target>
+
+  <target name="-impl.src">
+    <vsh:javacc target="${javacc.src.dir}/CommandParser.jj"
+                package="${vsh.parser.package}" />
+  </target>
+
+</project>

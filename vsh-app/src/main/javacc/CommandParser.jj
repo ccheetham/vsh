@@ -1,0 +1,262 @@
+options {
+    JDK_VERSION = "1.6";
+    STATIC = false;
+}
+
+PARSER_BEGIN(CommandParser)
+package com.vmware.vsh.app.parser;
+
+import com.vmware.vsh.app.Command;
+import com.vmware.vsh.app.CommandLoader;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.StringBufferInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CommandParser {
+
+    public static void main(String args [])
+            throws ParseException, TokenMgrError, NumberFormatException {
+
+        InputStream in = null;
+        if (args.length == 0) {
+            in = System.in;
+        } else {
+            StringBuilder buf = new StringBuilder();
+            String delim = "";
+            for (String arg: args) {
+                buf.append(delim);
+                buf.append(arg);
+                delim = " ";
+            }
+            buf.append("\n");
+            in = new StringBufferInputStream(buf.toString());
+        }
+        CommandParser parser = new CommandParser(in);
+        for (Command cmd: parser.commandList()) {
+            System.out.println(cmd);
+        }
+    }
+
+    PrintStream out = System.out;
+
+//    public class Command {
+//
+//        final private String name;
+//        private String target;
+//        private List<Option> options = new ArrayList<Option>();
+//
+//        protected Command(String name) {
+//            this.name = name;
+//        }
+//
+//        public String getName() {
+//            return name;
+//        }
+//
+//        protected void setTarget(String target) {
+//            this.target = target;
+//        }
+//
+//        public String getTarget() {
+//            return target;
+//        }
+//
+//        protected Option addOption(String name) {
+//            Option opt = new Option(name);
+//            options.add(opt);
+//            return opt;
+//        }
+//
+//        public List<Option> getOptions() {
+//            return options;
+//        }
+//
+//        public String toString() {
+//            StringBuilder buf = new StringBuilder();
+//            buf.append("[name=").append(getName());
+//            if (getTarget() != null) {
+//                buf.append(", target=").append(getTarget());
+//            }
+//            if (getOptions().size() > 0) {
+//                buf.append(", opts=").append(getOptions());
+//            }
+//            buf.append("]");
+//            return buf.toString();
+//        }
+//
+//        public class Option {
+//
+//            final private String name;
+//            private String value;
+//
+//            private List<String> options = new ArrayList<String>();
+//
+//            protected Option(String name) {
+//                this.name = name;
+//            }
+//
+//            public String getName() {
+//                return name;
+//            }
+//
+//            protected void setValue(String value) {
+//                this.value = value;
+//            }
+//    
+//            public String getValue() {
+//                return value;
+//            }
+//
+//            public String toString() {
+//                StringBuilder buf = new StringBuilder();
+//                buf.append(getName());
+//                if (getValue() != null) {
+//                    buf.append("=").append(getValue());
+//                }
+//                return buf.toString();
+//            }
+//
+//        }
+//
+//    }
+
+}
+PARSER_END(CommandParser)
+
+SKIP : { " " | "\t" }
+
+TOKEN : {
+    <EOL :
+        "\r"
+    |   "\n"
+    |   "\r\n"
+    |   ";"
+    >
+}
+
+TOKEN : {
+    <COMMA :
+        ","
+    >
+}
+
+TOKEN : {
+    <EQUALS :
+        "="
+    >
+}
+
+TOKEN : {
+    <OCURLY :
+        "{"
+    >
+}
+
+TOKEN : {
+    <CCURLY :
+        "}"
+    >
+}
+
+TOKEN : {
+    <WORD:
+        (<LETTER>)+
+    >
+}
+
+TOKEN : {
+    <NUMBER:
+        (<DIGIT>)+
+    >
+}
+
+TOKEN : {
+    <#LETTER :
+        (["a"-"z"] | ["A"-"Z"])
+    >
+}
+
+TOKEN : {
+    <#DIGIT :
+        (["0"-"9"])
+    >
+}
+
+List<Command> commandList() :
+{
+    List<Command> commands = new ArrayList<Command>();
+    Command command;
+}
+{
+    (
+        command = command()
+        { if (command != null) commands.add(command); }
+    |
+        <EOL>
+    )*
+    <EOF>
+    { return commands; }
+}
+
+Command command() :
+{
+    Token t;
+    Command command;
+}
+{
+    command = name()
+//    (
+//        target(command)
+//    )?
+//    (
+//        <OCURLY>
+//        ( optionList(command) )?
+//        <CCURLY>
+//    )?
+    <EOL>
+    { return command; }
+}
+
+Command name() :
+{
+    Token t;
+}
+{
+    t = <WORD>
+    { return CommandLoader.forName(t.image); }
+}
+
+//void target(Command command) :
+//{
+//    Token t;
+//}
+//{
+//    t = <WORD>
+//    { command.setTarget(t.image); }
+//}
+
+//void optionList(Command command) :
+//{}
+//{
+//    option(command)
+//    ( <COMMA> option(command) )*
+//}
+
+//void option(Command command) :
+//{
+//    Token t;
+//    Command.Option opt;
+//}
+//{
+//    t = <WORD>
+//    { opt = command.addOption(t.image); }
+//    (
+//        <EQUALS>
+//        t = <WORD>
+//        { opt.setValue(t.image); }
+//    )?
+//}

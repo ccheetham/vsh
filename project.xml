@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" xmlns:vsh="antlib:com.vmware.vsh">
+
+  <target name="init" depends="-pre.init,-impl.init,-post.init" />
+
+  <target name="-pre.init" />
+
+  <target name="-impl.init">
+    <property file="${basedir}/build.properties" />
+    <dirname property="project.basedir" file="${ant.file.project}" />
+    <property file="${project.basedir}/build.properties" />
+  </target>
+
+  <target name="-post.init" />
+
+  <target name="dump"
+          description="dump project build properties"
+          depends="init,-pre.dump,-impl.dump,-post.dump" />
+
+  <target name="-pre.dump" />
+
+  <target name="-impl.dump">
+    <echo>
+basedir        : ${basedir}
+build.dir      : ${build.dir}
+debug          : ${debug}
+dep.dir        : ${dep.dir}
+dist.dir       : ${dist.dir}
+java.src.dir    : ${java.src.dir}
+project.basedir: ${project.basedir}
+project.jar    : ${project.jar}
+src.dir        : ${src.dir}
+test.src.dir    : ${test.src.dir}
+    </echo>
+  </target>
+
+  <target name="-post.dump" />
+
+  <target name="src"
+          description="generate project src (if applicable)"
+          depends="init,-init.javacc,-pre.src,-impl.src,-post.src" />
+
+  <target name="-init.javacc" depends="-check.javacc,-install.javacc" />
+
+  <target name="-check.javacc">
+    <property name="javacc.cookie" location="${javacc.dir}/.javacc.cookie" />
+    <available file="${javacc.cookie}" property="javacc.installed"/>
+  </target>
+
+  <target name="-install.javacc" unless="javacc.installed">
+    <property name="javacc.download" location="${java.io.tmpdir}/javacc.zip" />
+    <get src="${javacc.url}" dest="${javacc.download}" />
+    <unzip src="${javacc.download}" dest="${antlib.dir}" />
+    <delete file="${javacc.download}" />
+    <touch file="${javacc.cookie}" />
+  </target>
+
+  <target name="-pre.src" />
+
+  <target name="-impl.src" />
+
+  <target name="-post.src" />
+
+  <target name="build"
+          description="build project"
+          depends="src,-pre.build,-impl.build,-post.build" />
+
+  <target name="-pre.build" />
+
+  <target name="-impl.build"
+          depends="-check.src,-compile.gen.src,-compile.src" />
+
+  <target name="-check.src">
+    <available file="${src.dir}" property="src.exists" />
+    <available file="${gen.src.dir}" property="gen.src.exists" />
+    <available file="${script.src.dir}" property="script.src.exists" />
+    <available file="${xml.src.dir}" property="xml.src.exists" />
+  </target>
+
+  <target name="-compile.gen.src" if="gen.src.exists">
+    <vsh:javac srcdir="${gen.src.dir}" />
+  </target>
+
+  <target name="-compile.src" if="src.exists">
+    <vsh:javac />
+  </target>
+
+  <target name="-post.build" />
+
+  <target name="jar"
+          description="create project jar"
+          depends="build,-pre.jar,-impl.jar,-post.jar" />
+
+  <target name="-pre.jar" />
+
+  <target name="-impl.jar" depends="-jar.deps">
+    <condition property="title.note" value=" (debug)" else=" (release)">
+      <istrue value="${debug}" />
+    </condition>
+    <jar destfile="${jar.dir}/${project.jar}"
+         basedir="${classes.dir}"
+         strict="fail">
+      <manifest>
+        <attribute name="Implementation-Title"
+                   value="${project.title}${title.note}" />
+        <attribute name="Implementation-Version" value="${project.version}" />
+        <attribute name="Implementation-Vendor" value="${project.vendor}" />
+        <attribute name="Main-Class" value="${main.class}" />
+        <attribute name="Class-Path" value="${jar.dep.libs}" />
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="-jar.deps" depends="-jar.deps.check,-jar.deps.do">
+    <condition property="jar.dep.libs" value="">
+      <not>
+        <isset property="jar.dep.libs" />
+      </not>
+    </condition>
+  </target>
+
+  <target name="-jar.deps.check">
+    <available property="jar.deps" file="${dep.dir}/lib" />
+  </target>
+
+  <target name="-jar.deps.do" if="jar.deps">
+    <path id="jar.dep.path">
+      <fileset dir="${dep.dir}/lib" />
+    </path>
+    <pathconvert property="jar.dep.libs" pathsep=" ">
+      <path refid="jar.dep.path" />
+      <map from="${dep.dir}/lib/" to="" />
+    </pathconvert>
+  </target>
+
+  <target name="-post.jar" />
+
+  <target name="test"
+          description="test project"
+          depends="jar,-pre.test,-impl.test,-post.test" />
+
+  <target name="-pre.test" />
+
+  <target name="-impl.test" depends="-init.junit,-build.tests,-run.tests" />
+
+  <target name="-post.test" />
+
+  <target name="-init.junit">
+    <dirname property="-junit.dir" file="${junit.jar}" />
+    <mkdir dir="${-junit.dir}" />
+    <get src="${junit.url}" dest="${junit.jar}" skipexisting="true" />
+  </target>
+
+  <target name="-build.tests">
+    <javac destdir="${test.classes.dir}"
+           debug="${debug}"
+           includeantruntime="false"
+           srcdir="${test.src.dir}">
+      <classpath path="${junit.jar}" />
+    </javac>
+  </target>
+
+  <target name="-run.tests">
+    <mkdir dir="${test.report.dir}" />
+    <junit printsummary="yes">
+      <batchtest todir="${test.report.dir}">
+        <fileset dir="${test.src.dir}">
+          <include name="**/*Test.java" />
+        </fileset>
+      </batchtest>
+      <classpath path="${test.classes.dir}" />
+      <classpath path="${junit.jar}" />
+      <formatter type="plain" usefile="false" />
+      <formatter type="plain" usefile="true" />
+    </junit>
+  </target>
+
+  <target name="doc"
+          description="generate project documentation"
+          depends="init,-pre.doc,-impl.doc,-post.doc" />
+
+  <target name="-pre.doc" />
+
+  <target name="-impl.doc">
+    <javadoc destdir="${doc.build.dir}">
+      <sourcepath path="${java.src.dir}" />
+    </javadoc>
+  </target>
+
+  <target name="-post.doc" />
+
+  <target name="dist"
+          description="assemble project distribution"
+          depends="jar,-pre.dist,-impl.dist,-post.dist" />
+
+  <target name="-pre.dist" />
+
+  <target name="-impl.dist" depends="-dist.deps,-dist.jar,-dist.scripts,-dist.doc" />
+
+  <target name="-dist.deps" depends="-dist.deps.check,-dist.deps.do" />
+
+  <target name="-dist.deps.check">
+    <available file="${dep.dir}" property="deps" />
+  </target>
+
+  <target name="-dist.deps.do" if="deps">
+    <mkdir dir="${dist.dir}" />
+    <copy todir="${dist.dir}">
+      <fileset dir="${dep.dir}" />
+    </copy>
+  </target>
+
+  <target name="-dist.jar">
+    <mkdir dir="${lib.dist.dir}" />
+    <copy todir="${lib.dist.dir}">
+      <fileset dir="${jar.dir}" />
+    </copy>
+  </target>
+
+  <target name="-dist.scripts" if="script.src.exists">
+    <copy todir="${script.dist.dir}" overwrite="yes">
+      <fileset dir="${script.src.dir}" />
+      <filterset>
+        <filter token="project.jar" value="${project.jar}" />
+      </filterset>
+    </copy>
+    <chmod perm="+x">
+      <fileset dir="${script.dist.dir}" excludes="*.cmd" />
+    </chmod>
+  </target>
+
+  <target name="-dist.doc">
+    <!--
+    <mkdir dir="${doc.dist.dir}" />
+    <copy todir="${doc.dist.dir}">
+      <fileset dir="${doc.build.dir}" />
+    </copy>
+    -->
+  </target>
+
+  <target name="-post.dist" />
+
+  <target name="clean"
+          description="clean project"
+          depends="init,-pre.clean,-impl.clean,-post.clean" />
+
+  <target name="-pre.clean" />
+
+  <target name="-impl.clean">
+    <delete dir="${dist.dir}" />
+    <delete dir="${dep.dir}" />
+    <delete dir="${build.dir}" />
+  </target>
+
+  <target name="-post.clean" />
+
+  <target name="run"
+          description="run project"
+          depends="dist,-pre.run,-impl.run,-post.run" />
+
+  <target name="-pre.run" />
+
+  <target name="-impl.run">
+    <java jar="${lib.dist.dir}/${project.jar}" fork="true" />
+  </target>
+
+  <target name="-post.run" />
+
+  <macrodef name="javac" uri="antlib:com.vmware.vsh">
+    <attribute name="srcdir" default="${java.src.dir}" />
+    <sequential>
+      <mkdir dir="${classes.dir}" />
+      <javac destdir="${classes.dir}"
+             debug="${debug}"
+             includeantruntime="false"
+             srcdir="@{srcdir}"
+             extdirs="${dep.dir}/lib" />
+    </sequential>
+  </macrodef>
+
+  <macrodef name="javacc" uri="antlib:com.vmware.vsh">
+    <attribute name="target" />
+    <attribute name="package" />
+    <sequential>
+      <path id="@{package}.path" location="@{package}" />
+      <pathconvert property="@{package}.dir" refid="@{package}.path">
+        <unpackagemapper from="${basedir}/*" to="${gen.src.dir}/*" />
+      </pathconvert>
+      <mkdir dir="${@{package}.dir}" />
+      <javacc target="@{target}"
+              outputdirectory="${@{package}.dir}"
+              javacchome="${javacc.dir}" />
+    </sequential>
+  </macrodef>
+
+</project>
+

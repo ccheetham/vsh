@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+JAVA=${JAVA:=java}
+BASEDIR=$(dirname $0)/..
+VSH_JAR=$BASEDIR/lib/@project.jar@
+
+$JAVA -jar $VSH_JAR $*

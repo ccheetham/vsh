@@ -1,0 +1,4 @@
+antlib/
+dist/
+*/build/
+*/deps/

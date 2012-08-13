@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vim25-client" default="dist" xmlns:vsh="antlib:com.vmware.vsh">
+
+  <import file="../project.xml"/>
+
+  <target name="-post.dump">
+    <echo>
+vim25.package  : ${vim25.package}
+    </echo>
+  </target>
+
+  <target name="-pre.src">
+    <property name="src.cookie" location="${gen.src.dir}/.src.cookie" />
+    <available file="${src.cookie}" property="src.generated"/>
+  </target>
+
+  <target name="-impl.src" unless="src.generated">
+    <mkdir dir="${gen.src.dir}" />
+    <exec executable="wsimport" failonerror="true">
+      <arg value="-Xnocompile" />
+      <arg value="-s" />
+      <arg value="${gen.src.dir}" />
+      <arg value="-p" />
+      <arg value="${vim25.package}" />
+      <arg value="-catalog" />
+      <arg value="${xml.src.dir}/catalog.xml" />
+      <arg value="http://vmware.com/ws/vim25?wsdl" />
+    </exec>
+    <touch file="${src.cookie}" />
+  </target>
+
+  <target name="-post.build" depends="-zip.wsdl" />
+
+  <target name="-zip.wsdl">
+    <zip destfile="${classes.dir}/wsdl.zip"
+         basedir="${xml.src.dir}"/>
+  </target>
+
+</project>

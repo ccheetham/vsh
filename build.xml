@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vsh" default="dist" xmlns:vsh="antlib:com.vmware.vsh">
+
+  <property file="build.properties" />
+
+  <target name="dist" description="assemble distribution">
+    <vsh:dist-subproj project="vsh-app" />
+  </target>
+
+  <target name="clean" description="clean vsh workspace">
+    <basename file="${antlib.dir}" property="local.antlib.dir"/>
+    <delete dir="${local.antlib.dir}" />
+    <delete dir="dist" />
+    <vsh:clean-subproj project="vsh-app" />
+    <vsh:clean-subproj project="vsh-api" />
+    <vsh:clean-subproj project="vim25-client" />
+  </target>
+
+  <macrodef name="dist-subproj" uri="antlib:com.vmware.vsh">
+    <attribute name="project" />
+    <sequential>
+      <ant dir="@{project}" target="dist" inheritall="false">
+        <property name="dist.dir" location="dist" />
+      </ant>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="clean-subproj" uri="antlib:com.vmware.vsh">
+    <attribute name="project" />
+    <sequential>
+      <echo>cleaning project @{project}</echo>
+      <ant dir="@{project}" target="clean" inheritall="false"/>
+    </sequential>
+  </macrodef>
+
+</project>

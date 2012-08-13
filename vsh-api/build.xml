@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vsh-api" xmlns:vsh="antlib:com.vmware.vsh">
+
+  <import file="../project.xml"/>
+
+  <target name="-pre.build">
+    <mkdir dir="${dep.dir}" />
+    <ant dir="${project.basedir}/vim25-client" target="dist" inheritall="false">
+      <property name="dist.dir" location="${dep.dir}" />
+    </ant>
+  </target>
+
+	<!--
+	<property name="vim-client.libdir" location="../vim-client/dist/lib" />
+	<path id="vim-client.jar">
+		<fileset dir="${vim-client.libdir}" includes="vim-client-*.jar" />
+	</path>
+	-->
+<!--
+	<target name="foo">
+		<echo>vim.dir = ${vim25.dir}</echo>
+	</target>
+
+	<target name="build" depends="vim" description="compile project">
+		<mkdir dir="build/classes" />
+		<javac destdir="build/classes" debug="${debug}" includeantruntime="false">
+			<src path="src/main/java" />
+			<classpath refid="vim-client.jar" />
+		</javac>
+	</target>
+
+	<target name="vim" depends="-check.vimsrc,-gen.vimsrc,-compile.vim" />
+
+	<target name="-check.vimsrc">
+		<property name="vimsrc.cookie" location="${vimsrc.dir}/.vim.cookie" />
+		<available file="${vimsrc.cookie}" property="vimsrc.generated" />
+	</target>
+
+	<target name="-gen.vimsrc" unless="vimsrc.generated">
+		<mkdir dir="${vimsrc.dir}" />
+		<property name="vim.wsdl.catalog" location="${xmlsrc.dir}/catalog.xml" />
+		<property name="vim.wsdl.url" value="http://vmware.com/ws/vim25?wsdl" />
+		<exec executable="wsimport" failonerror="true">
+			<arg value="-Xnocompile" />
+			<arg value="-s" />
+			<arg value="${vimsrc.dir}" />
+			<arg value="-p" />
+			<arg value="${vim.pkg}" />
+			<arg value="-catalog" />
+			<arg value="${vim.wsdl.catalog}" />
+			<arg value="${vim.wsdl.url}" />
+		</exec>
+    <touch file="${vimsrc.cookie}" />
+	</target>
+	
+	<target name="-compile.vim">
+    <mkdir dir="${classes.dir}" />
+    <javac destdir="${classes.dir}" debug="${debug}" includeantruntime="false">
+      <src path="${vimsrc.dir}" />
+    </javac>
+	</target>
+
+	<target name="test" description="test project">
+		<fail>TODO: impl test target</fail>
+	</target>
+
+	<target name="dist" depends="build" description="assemble distribution">
+		<mkdir dir="dist" />
+		<pathconvert property="vim-client.path" pathsep=" ">
+			<path refid="vim-client.jar" />
+			<map from="${vim-client.libdir}/" to="" />
+		</pathconvert>
+		<jar destfile="dist/lib/${project.name}-${project.version}.jar"
+         basedir="build/classes"
+         strict="fail">
+			<manifest>
+				<attribute name="Implementation-Title" value="${project.title}" />
+				<attribute name="Implementation-Version" value="${project.version}" />
+				<attribute name="Implementation-Vendor" value="${project.vendor}" />
+				<attribute name="Class-Path" value="${vim-client.path}" />
+			</manifest>
+		</jar>
+		<zip destfile="dist/src/${project.name}-${project.version}-src.zip">
+			<fileset dir="src/main/java" />
+		</zip>
+	</target>
+
+	<target name="doc" description="document project">
+		<javadoc destdir="build/javadoc" sourcepath="src/main/java">
+			<classpath refid="vim-client.path" />
+		</javadoc>
+	</target>
+
+	<target name="clean" description="clean project">
+		<delete dir="dist" />
+		<delete dir="build" />
+	</target>
+-->
+</project>
